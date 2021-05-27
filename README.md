@@ -325,7 +325,7 @@ index => "new_index"
 }
 ```
 Restart the container and start all services.
-After that in left menu find "Stack Management" link in section "Management":
+Go to the ELK stack vrowser page and in left menu find "Stack Management" link in section "Management":
 ![](second.png)
 
 Here find the index pattern page:
@@ -398,7 +398,7 @@ Now, enter the Container1, where our log file will be located:
  prlctl enter Container1
 ```
 Install the elasticsearch repository and filebeat. The 
-proccess of installation is described in the start.
+proccess of installation is described in the **Installing packages** section.
 
 Download the log:
 ``` bash
@@ -410,3 +410,66 @@ Configure the filebeat settings:
 ```bash
  vi /etc/filebeat/filebeat.yml
 ```
+Modify the "filebeat inputs", "Outputs and "Logstash Output" sections:
+```
+...
+filebeat.inputs:
+
+# Each - is an input. Most options can be set at the input level, so
+# you can use different inputs for various configurations.
+# Below are the input specific configurations.
+
+- type: log
+
+# Change to true to enable this input configuration.
+  enabled: false
+
+  # Paths that should be crawled and fetched. Glob based paths.
+  paths:
+    - "path_to_file"
+   #- c:\programdata\elasticsearch\logs\*
+
+
+  # Exclude lines. A list of regular expressions to match. It drops the lines that are
+  # matching any regular expression from the list.
+  #exclude_lines: ['^DBG']
+  ...
+  # ================================== Outputs ===================================
+
+# Configure what output to use when sending the data collected by the beat.
+
+# ---------------------------- Elasticsearch Output ----------------------------
+output.elasticsearch:
+  # Array of hosts to connect to.
+  hosts: ["192.168.0.130:9200"]
+
+  # Protocol - either `http` (default) or `https`.
+  #protocol: "https"
+
+  # Authentication credentials - either API key or username/password.
+  #api_key: "id:api_key"
+  #username: "elastic"
+  #password: "changeme"
+
+# ------------------------------ Logstash Output -------------------------------
+#output.logstash:
+  # The Logstash hosts
+  hosts: ["192.168.0.130:5000"]
+
+  # Optional SSL. By default is off.
+  # List of root certificates for HTTPS server verifications
+  #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
+
+  # Certificate for SSL client authentication
+  #ssl.certificate: "/etc/pki/client/cert.pem"
+
+  # Client Certificate Key
+  #ssl.key: "/etc/pki/client/cert.key"
+...
+```
+Here 192.168.0.130:9200 is a host of elasticsearch in StackContainer,  192.168.0.130:5000 is a host where logstash try to collect the data.
+Restart the filebeat service:
+``` bash
+ systemctl restart filebeat
+```
+Now you can go to the ELK stack browser page and set up index "remote" like it is described in section **Setting up elasticsearch index for local file**.
